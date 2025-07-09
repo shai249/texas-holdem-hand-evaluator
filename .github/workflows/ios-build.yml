@@ -1,4 +1,4 @@
-name: Expo iOS Prebuild + Build + Export ios Directory
+name: Expo iOS Prebuild + Build
 
 on:
   push:
@@ -30,43 +30,33 @@ jobs:
       - name: Run expo prebuild for iOS
         run: npx expo prebuild --platform ios
 
-      - name: Zip the ios directory
-        run: |
-          zip -r ios.zip ios
-
-      - name: Upload ios directory artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-directory
-          path: ios.zip
-
       - name: Install CocoaPods dependencies
         run: |
           cd ios
           pod install
 
       - name: List Xcode schemes
-        run: xcodebuild -workspace ios/TexasHoldemHandEvaluator.xcworkspace -list
+        run: xcodebuild -workspace ios/texasholdemhandevaluator.xcworkspace -list
 
       - name: Build Xcode archive (.xcarchive)
         run: |
           xcodebuild \
-            -workspace ios/TexasHoldemHandEvaluator.xcworkspace \
-            -scheme TexasHoldemHandEvaluator \
+            -workspace ios/texasholdemhandevaluator.xcworkspace \
+            -scheme texasholdemhandevaluator \
             -configuration Release \
             -sdk iphoneos \
-            -archivePath build/TexasHoldemHandEvaluator.xcarchive \
+            -archivePath build/texasholdemhandevaluator.xcarchive \
             archive
 
       - name: Export .ipa
         run: |
           xcodebuild -exportArchive \
-            -archivePath build/TexasHoldemHandEvaluator.xcarchive \
+            -archivePath build/texasholdemhandevaluator.xcarchive \
             -exportOptionsPlist ios/exportOptions.plist \
             -exportPath build/ExportedIPA
 
       - name: Upload .ipa artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TexasHoldem.ipa
+          name: texasholdemhand.ipa
           path: build/ExportedIPA/*.ipa
