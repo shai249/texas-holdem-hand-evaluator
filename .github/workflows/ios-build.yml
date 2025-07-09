@@ -1,0 +1,56 @@
+name: Expo iOS Prebuild + Xcode Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install global Expo CLI
+        run: npm install -g expo-cli
+
+      - name: Install project dependencies
+        run: npm install
+
+      - name: Run `expo prebuild --ios`
+        run: npx expo prebuild --ios
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build Xcode archive (.xcarchive)
+        run: |
+          xcodebuild \
+            -workspace ios/TexasHoldemHandEvaluator.xcworkspace \
+            -scheme TexasHoldemHandEvaluator \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/TexasHoldemHandEvaluator.xcarchive \
+            archive
+
+      - name: Export .ipa
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/TexasHoldemHandEvaluator.xcarchive \
+            -exportOptionsPlist ios/exportOptions.plist \
+            -exportPath build/ExportedIPA
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TexasHoldem.ipa
+          path: build/ExportedIPA/*.ipa
